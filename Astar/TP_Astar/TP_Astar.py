@@ -35,32 +35,31 @@ def read_position():
 
 
 def read_connections():
-    connections = {}  # dict of dict is maybe not the best solution
+    connections = {}
     with open('connections.txt', 'r') as f:
         for line in f:
             data = line.split()
-            # tmp = connections[data[0]]
-            # tmp[data[1]] = data[2]
-            # tmp2 = connections[data[1]]
-            # tmp2[data[0]] = data[2]
 
-            connections[data[0]].update({data[1]:data[2]})
-            connections[data[1]].update({data[0]:data[2]})
+            try:
+                connections[data[0]].update({data[1]: data[2]})
+            except:
+                connections[data[0]] = {data[1]: data[2]}
 
-            # connections[data[0]][data[1]] = data[2]
+            try:
+                connections[data[1]].update({data[0]: data[2]})
+            except:
+                connections[data[1]] = {data[0]: data[2]}
 
         f.close()
-    # print(connections)
     return connections
-
-    # 'val1':{valx:123}
 
 
 if __name__ == '__main__':
-    # asdfasdf
     read_position()
     derp = read_connections()
-
     print(derp['Hamburg'])
-    # for key,val in derp:
-    #     print(key,val)
+
+    for key, val in derp.items():
+        print("--------City:", key)
+        for key2, val2 in val.items():
+            print(key2, val2)
