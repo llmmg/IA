@@ -68,7 +68,7 @@ def search(connections, positions, destination, startCity):
             if any(x.name != cit for x in history):
                frontiere.insert(0, createObjcity(positions)[cit])
 
-        frontiere.sort(key=lambda x: (x.g + heur1_x(x.name, destination.name, positions)), reverse=True)
+        frontiere.sort(key=lambda x: (x.g + heur3_bird(x.name, destination.name, positions)), reverse=True)
         #     if (new not in history) and new.legal():
         #         frontiere.insert(0, new)  # bfs
         # frontiere.sort(key=lambda x: -x.lazy_distance(final_values))
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
     # print(heur1_x(myObj['Berlin'].name, myObj['Prague'].name, read_position()))
 
-    search(read_connections(), read_position(), myObj['Paris'], myObj['Berlin'])
+    search(read_connections(), read_position(), myObj['Budapest'], myObj['Madrid'])
 
     # for obj,val in createObjcity(read_position()).items():
     #     print(obj,val.name)
