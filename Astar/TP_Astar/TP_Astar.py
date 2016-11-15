@@ -14,14 +14,13 @@ def getNeighbour(cityName, connections):
     return connections[cityName]
 
 
-# TODO: heuristique
 def heur0(src, dest):
     return 0
 
 
 def heur1_x(src, dest, positions):
     dist = int(positions[src][0]) - int(positions[dest][0])
-    return dist
+    return math.fabs(dist)
 
 
 def heur2_y(src, dest, positions):
@@ -47,7 +46,7 @@ def search(connections, positions, destination, startCity):
     totDist = 0
     old = startCity
     i = 1
-    path=[] #list of visited cities
+    path = []  # list of visited cities
     while frontiere:
         print('{} iteration'.format(i))
         i += 1
@@ -64,15 +63,16 @@ def search(connections, positions, destination, startCity):
             return city
         neighbours = getNeighbour(city.name, connections)
         for cit, dist in neighbours.items():
-           # if cit not in history:
+            # if cit not in history:
             if any(x.name != cit for x in history):
-               frontiere.insert(0, createObjcity(positions)[cit])
-
-        frontiere.sort(key=lambda x: (x.g + heur3_bird(x.name, destination.name, positions)), reverse=True)
-        #     if (new not in history) and new.legal():
-        #         frontiere.insert(0, new)  # bfs
-        # frontiere.sort(key=lambda x: -x.lazy_distance(final_values))
-        # frontiere = sorted(frontiere, key=lambda x: -x.lazy_distance(final_values))
+                tmpCit = createObjcity(positions)[cit]
+                tmpCit.g = totDist + int(dist)
+                frontiere.insert(0, tmpCit)
+                # print(tmpCit.name, " ", tmpCit.g + heur1_x(tmpCit.name, destination.name, positions))
+        frontiere.sort(key=lambda x: (x.g + heur3_bird(x.name, destination.name, positions)),reverse=True)
+        frontiere.sort(key=lambda x: x.name in neighbours)
+        for asdf in frontiere:
+            print("eh",asdf.name)
     return None
 
 
