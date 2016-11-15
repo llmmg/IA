@@ -69,12 +69,13 @@ def search(connections, positions, destination, startCity):
         neighbours = getNeighbour(city.name, connections)
         for cit, dist in neighbours.items():
             # if cit not in history:
-            if any(x.name != cit for x in history):
+            # if any((cit != x.name) for x in history):
+            if not isInList(cit,history):
                 tmpCit = createObjcity(positions)[cit]
                 tmpCit.g = totDist + int(dist)
                 frontiere.insert(0, tmpCit)
                 # print(tmpCit.name, " ", tmpCit.g + heur1_x(tmpCit.name, destination.name, positions))
-        frontiere.sort(key=lambda x: (x.g + heur0(x.name, destination.name)), reverse=True)
+        frontiere.sort(key=lambda x: (x.g + heur3_bird(x.name, destination.name,positions)), reverse=True)
         # frontiere.sort(key=lambda x: x.name in neighbours)
         # for asdf in frontiere:
         #     print("eh",asdf.name)
@@ -125,6 +126,13 @@ def createObjcity(cities):
     return myDict
 
 
+def isInList(cityName, list):
+    for city in list:
+        if cityName == city.name:
+            return True
+    return False
+
+
 if __name__ == '__main__':
     read_position()
     derp = read_connections()
@@ -158,7 +166,7 @@ if __name__ == '__main__':
 
     # print(heur1_x(myObj['Berlin'].name, myObj['Prague'].name, read_position()))
 
-    search(read_connections(), read_position(), myObj['Paris'], myObj['Bern'])
+    search(read_connections(), read_position(), myObj['Belgrade'], myObj['Lisbon'])
 
     # for obj,val in createObjcity(read_position()).items():
     #     print(obj,val.name)
