@@ -53,9 +53,14 @@ def search(connections, positions, destination, startCity):
         city = frontiere.pop()  # /!\ return last item
         path.append(city.name)
         history.add(city)
+
         if city.name != old.name:
-            totDist += int(connections[old.name][city.name])
-            print(old.name, " ", city.name, "=", totDist)
+            try:
+                totDist += int(connections[old.name][city.name])
+                print(old.name, " ", city.name, "=", totDist)
+            except:
+                print("back to:", city.name)
+
         city.g = totDist
         old = city
         if city.name == destination.name:
@@ -69,10 +74,10 @@ def search(connections, positions, destination, startCity):
                 tmpCit.g = totDist + int(dist)
                 frontiere.insert(0, tmpCit)
                 # print(tmpCit.name, " ", tmpCit.g + heur1_x(tmpCit.name, destination.name, positions))
-        frontiere.sort(key=lambda x: (x.g + heur3_bird(x.name, destination.name, positions)),reverse=True)
-        frontiere.sort(key=lambda x: x.name in neighbours)
-        for asdf in frontiere:
-            print("eh",asdf.name)
+        frontiere.sort(key=lambda x: (x.g + heur0(x.name, destination.name)), reverse=True)
+        # frontiere.sort(key=lambda x: x.name in neighbours)
+        # for asdf in frontiere:
+        #     print("eh",asdf.name)
     return None
 
 
@@ -153,7 +158,7 @@ if __name__ == '__main__':
 
     # print(heur1_x(myObj['Berlin'].name, myObj['Prague'].name, read_position()))
 
-    search(read_connections(), read_position(), myObj['Budapest'], myObj['Madrid'])
+    search(read_connections(), read_position(), myObj['Paris'], myObj['Bern'])
 
     # for obj,val in createObjcity(read_position()).items():
     #     print(obj,val.name)
