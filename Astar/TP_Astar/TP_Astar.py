@@ -1,4 +1,5 @@
 import math
+import sys
 
 
 class City(object):
@@ -40,7 +41,7 @@ def heur4_manhattan(src, dest, positions):
     return disty + distx
 
 
-def search(connections, positions, destination, startCity):
+def search(connections, positions, startCity, destination):
     frontiere = [startCity]  # string city name + g
     history = set()  # set > list
     totDist = 0
@@ -65,20 +66,40 @@ def search(connections, positions, destination, startCity):
         old = city
         if city.name == destination.name:
             print(path)
+            # for obj in history:
+            #     print(obj.name)
+            # print(bestPath(path))
             return city
         neighbours = getNeighbour(city.name, connections)
         for cit, dist in neighbours.items():
             # if cit not in history:
             # if any((cit != x.name) for x in history):
-            if not isInList(cit,history):
+            if not isInList(cit, history):
                 tmpCit = createObjcity(positions)[cit]
-                tmpCit.g = totDist + int(dist)
-                frontiere.insert(0, tmpCit)
-                # print(tmpCit.name, " ", tmpCit.g + heur1_x(tmpCit.name, destination.name, positions))
-        frontiere.sort(key=lambda x: (x.g + heur3_bird(x.name, destination.name,positions)), reverse=True)
-        # frontiere.sort(key=lambda x: x.name in neighbours)
-        # for asdf in frontiere:
-        #     print("eh",asdf.name)
+                # g is updated even if there's a "back to" so
+                # => g may be crushed
+                # tmpCit.g = totDist + int(dist)
+                tmpCit.g += int(dist)
+                if isInList(tmpCit.name, frontiere):
+                    # update in list if new is < than older
+                    updateInList(frontiere, tmpCit)
+                else:
+                    frontiere.insert(0, tmpCit)
+
+                    # print(tmpCit.name, " ", tmpCit.g + heur1_x(tmpCit.name, destination.name, positions))
+        frontiere.sort(key=lambda x: (x.g + heur1_x(x.name, destination.name, positions)), reverse=True)
+
+        print("\nfront: ", end=" ")
+        for obj in frontiere:
+            print(obj.name, " ", obj.g + heur1_x(obj.name, destination.name, positions), " /", end=" ")
+
+        print("\nhist: ", end=" ")
+        for obj in history:
+            print(obj.name, " /", end=" ")
+
+            # frontiere.sort(key=lambda x: x.name in neighbours)
+            # for asdf in frontiere:
+            #     print("eh",asdf.name)
     return None
 
 
@@ -133,7 +154,30 @@ def isInList(cityName, list):
     return False
 
 
-if __name__ == '__main__':
+# update city in list if city.g in list is bigger than cityobj.g (new city)
+def updateInList(list, cityObj):
+    for city in list:
+        if city.name == cityObj.name and city.g > cityObj.g:
+            city.g = cityObj.g
+
+
+# get path - DOES NOT WORK /!\
+def bestPath(wholePath):
+    realPath = []
+    tmp = wholePath.pop()
+    while wholePath:
+        neigbOftmp = getNeighbour(tmp, read_connections())
+        if wholePath[-1] in neigbOftmp:
+            tmp = wholePath.pop()
+            realPath.append(tmp)
+        else:
+            wholePath.pop()
+
+    realPath.reverse()
+    return realPath
+
+
+def tests():
     read_position()
     derp = read_connections()
     # print(derp['Berlin']['Warsaw'])
@@ -161,12 +205,7 @@ if __name__ == '__main__':
     # print("----position------")
     # print(read_position()['Berlin'][0])  # [0] 626
     # print(read_position()['Prague'][0])
-
-    myObj = createObjcity(read_position())
-
     # print(heur1_x(myObj['Berlin'].name, myObj['Prague'].name, read_position()))
-
-    search(read_connections(), read_position(), myObj['Belgrade'], myObj['Lisbon'])
 
     # for obj,val in createObjcity(read_position()).items():
     #     print(obj,val.name)
@@ -176,3 +215,16 @@ if __name__ == '__main__':
     # Calc dist between berlin and Prague
     # print("----Dist Berlin prague---")
     # print(derp['Berlin']['Prague'])
+
+
+def main(argv):
+    srcCity = argv[0]
+    destCity = argv[1]
+    # TODO: argv[2] for heuristic
+
+    myObj = createObjcity(read_position())
+    search(read_connections(), read_position(), myObj[srcCity], myObj[destCity])
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
