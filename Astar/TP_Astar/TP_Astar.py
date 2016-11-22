@@ -26,7 +26,7 @@ def heur1_x(src, dest, positions):
 
 def heur2_y(src, dest, positions):
     dist = int(positions[src][1]) - int(positions[dest][1])
-    return dist
+    return math.fabs(dist)
 
 
 def heur3_bird(src, dest, positions):
@@ -36,8 +36,8 @@ def heur3_bird(src, dest, positions):
 
 
 def heur4_manhattan(src, dest, positions):
-    distx = int(positions[src][0]) - int(positions[dest][0])
-    disty = int(positions[src][1]) - int(positions[dest][1])
+    distx = math.fabs(int(positions[src][0]) - int(positions[dest][0]))
+    disty = math.fabs(int(positions[src][1]) - int(positions[dest][1]))
     return disty + distx
 
 
@@ -58,14 +58,15 @@ def search(connections, positions, startCity, destination):
         if city.name != old.name:
             try:
                 totDist += int(connections[old.name][city.name])
-                print(old.name, " ", city.name, "=", totDist)
+                print(old.name, " ", city.name, "=", city.g)
             except:
                 print("back to:", city.name)
-
-        city.g = totDist
         old = city
         if city.name == destination.name:
             print(path)
+            print('{} iteration'.format(i))
+            print("tot dist=",city.g)
+
             # for obj in history:
             #     print(obj.name)
             # print(bestPath(path))
@@ -76,10 +77,9 @@ def search(connections, positions, startCity, destination):
             # if any((cit != x.name) for x in history):
             if not isInList(cit, history):
                 tmpCit = createObjcity(positions)[cit]
-                # g is updated even if there's a "back to" so
-                # => g may be crushed
-                # tmpCit.g = totDist + int(dist)
-                tmpCit.g += int(dist)
+                # g= parent city.g + dest dist
+                tmpCit.g = city.g + int(dist)
+                # tmpCit.g += int(dist)
                 if isInList(tmpCit.name, frontiere):
                     # update in list if new is < than older
                     updateInList(frontiere, tmpCit)
@@ -87,11 +87,11 @@ def search(connections, positions, startCity, destination):
                     frontiere.insert(0, tmpCit)
 
                     # print(tmpCit.name, " ", tmpCit.g + heur1_x(tmpCit.name, destination.name, positions))
-        frontiere.sort(key=lambda x: (x.g + heur1_x(x.name, destination.name, positions)), reverse=True)
+        frontiere.sort(key=lambda x: (x.g + heur1_x(x.name, destination.name,positions)), reverse=True)
 
         print("\nfront: ", end=" ")
         for obj in frontiere:
-            print(obj.name, " ", obj.g + heur1_x(obj.name, destination.name, positions), " /", end=" ")
+            print(obj.name, " ", obj.g + heur1_x(obj.name, destination.name,positions), " /", end=" ")
 
         print("\nhist: ", end=" ")
         for obj in history:
@@ -166,7 +166,9 @@ def bestPath(wholePath):
     realPath = []
     tmp = wholePath.pop()
     while wholePath:
+        # TODO: save only the last valid neighbour not the first
         neigbOftmp = getNeighbour(tmp, read_connections())
+
         if wholePath[-1] in neigbOftmp:
             tmp = wholePath.pop()
             realPath.append(tmp)
