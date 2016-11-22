@@ -8,6 +8,7 @@ class City(object):
         self.x = posx
         self.y = posy
         self.g = 0  # may false algo?
+        self.parent = None
 
 
 # return dict
@@ -15,92 +16,107 @@ def getNeighbour(cityName, connections):
     return connections[cityName]
 
 
-def heur0(src, dest):
+# 3 parameters to keep the same signature as others heuristics functions
+def heur0(src, dest, pos):
     return 0
 
 
+# return x distance between src and dest
 def heur1_x(src, dest, positions):
     dist = int(positions[src][0]) - int(positions[dest][0])
     return math.fabs(dist)
 
 
+# return y distance between src and dest
 def heur2_y(src, dest, positions):
     dist = int(positions[src][1]) - int(positions[dest][1])
     return math.fabs(dist)
 
 
+# return distance between src and dest
 def heur3_bird(src, dest, positions):
     distx = int(positions[src][0]) - int(positions[dest][0])
     disty = int(positions[src][1]) - int(positions[dest][1])
     return math.sqrt(math.pow(distx, 2) + math.pow(disty, 2))
 
 
+# return manhattan distance between src and dest
 def heur4_manhattan(src, dest, positions):
     distx = math.fabs(int(positions[src][0]) - int(positions[dest][0]))
     disty = math.fabs(int(positions[src][1]) - int(positions[dest][1]))
     return disty + distx
 
 
-def search(connections, positions, startCity, destination):
-    frontiere = [startCity]  # string city name + g
+# search and return the optimal path (a list of cities name is returned)
+def search(startCity, destination, numHeuristic):
+    # parsing
+    positions = read_position()
+    connections = read_connections()
+
+    heuristics = [heur0, heur1_x, heur2_y, heur3_bird, heur4_manhattan]
+    frontiere = [startCity]  # store City objects
     history = set()  # set > list
-    totDist = 0
-    old = startCity
-    i = 1
+    old = startCity  # useful for debug
+    i = 0
     path = []  # list of visited cities
     while frontiere:
-        print('{} iteration'.format(i))
         i += 1
+        # print('\n{} iteration'.format(i))
+
         city = frontiere.pop()  # /!\ return last item
-        path.append(city.name)
+        path.append(city.name)  # same as history but 'sorted'
         history.add(city)
 
-        if city.name != old.name:
-            try:
-                totDist += int(connections[old.name][city.name])
-                print(old.name, " ", city.name, "=", city.g)
-            except:
-                print("back to:", city.name)
-        old = city
+        # if city.name != old.name:
+        #     print(old.name, " ", city.name, "=", city.g)
+        # old = city
         if city.name == destination.name:
             print(path)
-            print('{} iteration'.format(i))
-            print("tot dist=",city.g)
+            print("Optimal distance=", city.g)
+            print("Number of cities visited:", len(path))
+            print("total iterations:{}".format(i))
 
-            # for obj in history:
-            #     print(obj.name)
-            # print(bestPath(path))
-            return city
+            print("\n--Path-- ")
+            # show path
+            bestPath(city)
+
+            return storeBestPath(city)
         neighbours = getNeighbour(city.name, connections)
         for cit, dist in neighbours.items():
-            # if cit not in history:
-            # if any((cit != x.name) for x in history):
             if not isInList(cit, history):
                 tmpCit = createObjcity(positions)[cit]
+
                 # g= parent city.g + dest dist
                 tmpCit.g = city.g + int(dist)
-                # tmpCit.g += int(dist)
+
+                # If g is number of node instead of distance
+                # tmpCit.g=i
+                
+                tmpCit.parent = city
                 if isInList(tmpCit.name, frontiere):
                     # update in list if new is < than older
                     updateInList(frontiere, tmpCit)
                 else:
                     frontiere.insert(0, tmpCit)
 
-                    # print(tmpCit.name, " ", tmpCit.g + heur1_x(tmpCit.name, destination.name, positions))
-        frontiere.sort(key=lambda x: (x.g + heur1_x(x.name, destination.name,positions)), reverse=True)
+        frontiere.sort(key=lambda x: (x.g + heuristics[numHeuristic](x.name, destination.name, positions)),
+                       reverse=True)
 
-        print("\nfront: ", end=" ")
-        for obj in frontiere:
-            print(obj.name, " ", obj.g + heur1_x(obj.name, destination.name,positions), " /", end=" ")
+        # print frontiere and history
+        # showFrontierHistory(frontiere,history,heuristics,numHeuristic,positions,destination)
 
-        print("\nhist: ", end=" ")
-        for obj in history:
-            print(obj.name, " /", end=" ")
-
-            # frontiere.sort(key=lambda x: x.name in neighbours)
-            # for asdf in frontiere:
-            #     print("eh",asdf.name)
     return None
+
+
+def showFrontierHistory(front, hist, storedHeuristics, choosenHeur, pos, dest):
+    # print frontiere and history
+    print("\nfront: ", end=" ")
+    for obj in front:
+        print(obj.name, " ", obj.g + storedHeuristics[choosenHeur](obj.name, dest.name, pos), " /", end=" ")
+
+    print("\nhist: ", end=" ")
+    for obj in hist:
+        print(obj.name, " /", end=" ")
 
 
 # return dict of list that contain 'CityName':[posX,posY]
@@ -117,6 +133,7 @@ def read_position():
     return positions
 
 
+# return dict of dicts as 'CityName':
 def read_connections():
     connections = {}
     with open('connections.txt', 'r') as f:
@@ -137,6 +154,7 @@ def read_connections():
     return connections
 
 
+# return dict that contain City objects
 def createObjcity(cities):
     myDict = {}
 
@@ -147,6 +165,7 @@ def createObjcity(cities):
     return myDict
 
 
+# return true if list contain object with cityName attribute
 def isInList(cityName, list):
     for city in list:
         if cityName == city.name:
@@ -159,24 +178,22 @@ def updateInList(list, cityObj):
     for city in list:
         if city.name == cityObj.name and city.g > cityObj.g:
             city.g = cityObj.g
+            city.parent = cityObj.parent
 
 
-# get path - DOES NOT WORK /!\
-def bestPath(wholePath):
-    realPath = []
-    tmp = wholePath.pop()
-    while wholePath:
-        # TODO: save only the last valid neighbour not the first
-        neigbOftmp = getNeighbour(tmp, read_connections())
+# recursive function that show parents and g of lastCity
+def bestPath(lastCity):
+    if lastCity.parent is not None:
+        bestPath(lastCity.parent)
+    print(lastCity.name, " ", lastCity.g)
 
-        if wholePath[-1] in neigbOftmp:
-            tmp = wholePath.pop()
-            realPath.append(tmp)
-        else:
-            wholePath.pop()
 
-    realPath.reverse()
-    return realPath
+# recursive function that return a list of the lastCity's name parents
+def storeBestPath(lastCity, path=[]):
+    if lastCity.parent is not None:
+        storeBestPath(lastCity.parent)
+    path.append(lastCity.name)
+    return path
 
 
 def tests():
@@ -220,12 +237,13 @@ def tests():
 
 
 def main(argv):
+    # tests()
     srcCity = argv[0]
     destCity = argv[1]
-    # TODO: argv[2] for heuristic
+    heuristic = int(argv[2])
 
     myObj = createObjcity(read_position())
-    search(read_connections(), read_position(), myObj[srcCity], myObj[destCity])
+    search(myObj[srcCity], myObj[destCity], heuristic)
 
 
 if __name__ == '__main__':
