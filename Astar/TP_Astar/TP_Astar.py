@@ -1,3 +1,8 @@
+"""
+    Created by Lancelot Magnin
+    Last edit: 25.11.2016
+"""
+
 import math
 import sys
 
@@ -7,7 +12,7 @@ class City(object):
         self.name = name
         self.x = posx
         self.y = posy
-        self.g = 0  # may false algo?
+        self.g = 0
         self.parent = None
 
 
@@ -90,8 +95,8 @@ def search(startCity, destination, numHeuristic):
                 tmpCit.g = city.g + int(dist)
 
                 # If g is number of node instead of distance
-                # tmpCit.g=i
-                
+                # tmpCit.g=city.g+1
+
                 tmpCit.parent = city
                 if isInList(tmpCit.name, frontiere):
                     # update in list if new is < than older
@@ -129,7 +134,6 @@ def read_position():
             # first is name others are x and y
             positions[data[0]] = [data[1], data[2]]
         f.close()
-    # print(positions)
     return positions
 
 
@@ -140,11 +144,16 @@ def read_connections():
         for line in f:
             data = line.split()
 
+            # store a dict{city: dist} in a dictionary.
+            # each city has a dictionary of neighbour with the distance.
+            # -- as the container dictionary could already have an entry, it need to be updated
+            # -- but if it doesnt have any data yet, it need to get a new dictionary
             try:
                 connections[data[0]].update({data[1]: data[2]})
             except:
                 connections[data[0]] = {data[1]: data[2]}
 
+            # -- add the inverse relation (n1->n2 => n2->n1)
             try:
                 connections[data[1]].update({data[0]: data[2]})
             except:
@@ -159,7 +168,6 @@ def createObjcity(cities):
     myDict = {}
 
     for city, dist in cities.items():
-        # print(city, dist)
         myDict[city] = City(city, dist[0], dist[1])
 
     return myDict
@@ -196,48 +204,7 @@ def storeBestPath(lastCity, path=[]):
     return path
 
 
-def tests():
-    read_position()
-    derp = read_connections()
-    # print(derp['Berlin']['Warsaw'])
-    # print(derp['Warsaw']['Budapest'])
-    # print(derp['Budapest']['Belgrade'])
-
-
-    # for key, val in derp.items():
-    #     print("--------City:", key)
-    #     for key2, val2 in val.items():
-    #         print(key2, val2)
-
-    # show all neighbourd of "berlin"
-    # for key, val in derp.items():
-    #     if key == 'Berlin':
-    #         print(key, val)
-
-    # print("---neighbours----")
-    # for neig,t in derp['Berlin'].items():
-    #     print(neig,t)
-
-    # for key, val in getNeighbour('Berlin', derp).items():
-    #     print(key, val)
-
-    # print("----position------")
-    # print(read_position()['Berlin'][0])  # [0] 626
-    # print(read_position()['Prague'][0])
-    # print(heur1_x(myObj['Berlin'].name, myObj['Prague'].name, read_position()))
-
-    # for obj,val in createObjcity(read_position()).items():
-    #     print(obj,val.name)
-
-    # print(createObjcity(read_position())['Berlin'].name)
-
-    # Calc dist between berlin and Prague
-    # print("----Dist Berlin prague---")
-    # print(derp['Berlin']['Prague'])
-
-
 def main(argv):
-    # tests()
     srcCity = argv[0]
     destCity = argv[1]
     heuristic = int(argv[2])
