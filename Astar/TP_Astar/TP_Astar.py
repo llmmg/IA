@@ -205,6 +205,9 @@ def storeBestPath(lastCity, path=[]):
 
 
 def main(argv):
+    # 1st arg: src city
+    # 2nd arg: dest city
+    # 3rd arg: heuristic id [0-4]
     srcCity = argv[0]
     destCity = argv[1]
     heuristic = int(argv[2])
